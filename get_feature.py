@@ -20,7 +20,7 @@ class DataFeatures:
     def specg(self,x):
         self.Pow, self.freqs,self.bins = plm.specgram(x,noverlap = 32,NFFT=64, Fs=200,)
         self.Pow = np.log10(self.Pow)
-    def get_mean_diff(self,freq_bound=(0,20),time_window=(1,1.7)):
+    def get_mean_diff(self,freq_bound=(0,20),time_window=(0,0.7)):
         freq_index = [ith for ith,da in enumerate(self.freqs) if freq_bound[0]<=da<=freq_bound[1]]#TODO:better way to do this
         time_index = [ith for ith,da in enumerate(self.bins) if time_window[0]<=da<=time_window[1]]
         return self.Pow[:,time_index][freq_index].mean() - self.Pow[freq_index].mean()##TODO:self.Pow[freq_index,time_index] doesnot work. why?
@@ -36,7 +36,7 @@ class DataFeatures:
         raise NotImplementedError,'Do not support lambda and FitError'
     def _wrapper(self,x):
         self.specg(x)
-        return self.get_mean_diff()
+        return max(max(x),-min(x))#+self.get_mean_diff()
     def remove_EOG(self,ICs,mixingT,thr = 2.):
         '''
 
@@ -46,7 +46,7 @@ class DataFeatures:
         return [a for a,b in zip(ICs,tmp[-1]) if -2.3<b<2.3]#remove EOG
     def reorder_IC_by_features(self,ICs, W = None):
         ICs.sort(key = lambda x:self._wrapper(x))
-    def dim_reduction(self,ICs,dim = 4,time_bound =(0,200)):
+    def dim_reduction(self,ICs,dim = 5,time_bound =(0,200)):
         '''
 
         '''

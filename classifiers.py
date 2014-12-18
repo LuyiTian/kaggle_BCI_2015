@@ -22,6 +22,16 @@ def get_subset(data,label,subject_list):
     testing_label = label[test_list]
     return training_data,training_label,testing_data,testing_label
 
+def simple_cv(clf,data,label,sub_list,sub_num = 4,iter = 10):
+    auc_list = []
+    for ith in range(iter):
+        tmp = random.sample(sub_list,sub_num)
+        training_data,training_label,testing_data,testing_label = get_subset(data,label,tmp)
+        auc = get_auc_on_known_data(clf,training_data,training_label,testing_data,testing_label)
+        print auc
+        auc_list.append(auc)
+    return auc_list
+
 
 if __name__ == '__main__':
     the_data = datamodel.EEGData()

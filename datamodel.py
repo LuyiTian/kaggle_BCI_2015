@@ -25,7 +25,7 @@ COLUMNS = ['Fp1', 'Fp2',\
            'C5', 'C3', 'C1', 'Cz', 'C2', 'C4', 'C6',\
            'T8', 'TP7', 'CP5', 'CP3', 'CP1', 'CPz', 'CP2', 'CP4', 'CP6',\
            'TP8', 'P7', 'P5', 'P3', 'P1', 'Pz', 'P2', 'P4', 'P6', 'P8',
-           'PO7', 'POz', 'P08', 'O1', 'O2','EOG']
+           'PO7', 'POz', 'P08', 'O1', 'O2']
 ###################
 
 class EEGData:
@@ -87,11 +87,13 @@ class EEGData:
                 sig = df[int(p)+_lo:int(p)+_up]-m.mean(0)
                 ICs = ica.fit_transform(sig.values)
                 if kwargs['_train']:
-                    self.train_signal_data.append((ica.mixing_.T.mean(1)*ICs).T)
+                    tmp = np.array([da>0 and 1. or -1 for da in ica.mixing_.T.mean(1)])
+                    self.train_signal_data.append(ICs.T)
                     self.train_mixing.append(ica.mixing_.T)
                     self.train_metadata.append(np.array([subject,session,ith+1,p]))
                 else :
-                    self.test_signal_data.append((ica.mixing_.T.mean(1)*ICs).T)
+                    tmp = np.array([da>0 and 1. or -1 for da in ica.mixing_.T.mean(1)])##TODO: better way?
+                    self.test_signal_data.append(ICs.T)
                     self.test_mixing.append(ica.mixing_.T)
                     self.test_metadata.append(np.array([subject,session,ith+1,p]))
         else:
@@ -152,8 +154,8 @@ class EEGData:
 
 if __name__ == '__main__':
     a = EEGData()
-    all_arg = {'bound': (0,300),'mode': 'ICA', 'low_pass':True,'source': 'file_to_npy',\
-                'n_components': 8, 'random_state': 10}
+    all_arg = {'bound': (0,260),'mode': 'ICA', 'low_pass':True,'source': 'file_to_npy',\
+                'n_components': 5, 'random_state': 10}
 
     a.get_all(**all_arg)
 
