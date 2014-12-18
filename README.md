@@ -1,6 +1,6 @@
 code for kaggle_BCI_2015
 ===============
-author:Luyi Tian
+* author:Luyi Tian
 
-competitaion description:
+* competition description:
 https://www.kaggle.com/c/inria-bci-challenge
