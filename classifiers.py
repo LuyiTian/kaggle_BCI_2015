@@ -34,28 +34,32 @@ def simple_cv(clf,data,label,sub_list,sub_num = 4,iter = 10):
 
 
 if __name__ == '__main__':
+    from sklearn.lda import LDA
     the_data = datamodel.EEGData()
-    all_arg = {'bound': (-200,300),'mode': 'ICA', 'low_pass':True,'source': 'npy',\
-                'n_components': 10, 'random_state': 10}
+    all_arg = {'bound': (-100,300),'mode': 'ICA', 'low_pass':True,'source': 'npy',\
+                'n_components': 15, 'random_state': 10}
     the_data.get_all(**all_arg)
-    new_train = []
-    the_freq = get_feature.DataFeatures(N_t = 500)
-    for ith,ICs in enumerate(the_data.train_signal_data):
-        ICs = ICs.tolist()
-        tmp = the_data.train_mixing[ith] /the_data.train_mixing[ith].std(0)
-        tmp = tmp.T
-        ICs = [a for a,b in zip(ICs,tmp[-1]) if -2.<b<2.]#remove EOG
-        ICs.sort(key = lambda x:wrapper(the_freq,x))
-        ICs = np.array(ICs)[:5,200:400:2]
-        #ICs = [sum(ICs[:,i]) for i in range(ICs.shape[1])]
-        new_train.append(np.append(the_data.train_metadata[ith][0],np.ravel(ICs)))#np.append(meta,np.ravel(ICs)))
-    new_train = np.array(new_train)
-    print len(new_train)
-    subjects = the_data.get_train_subject()
-    print subjects
-    tmp = random.sample(subjects,4)
-    print tmp
-    training_data,training_label,testing_data,testing_label = get_subset(new_train,the_data.train_labels,tmp)
-    clf = ensemble.GradientBoostingClassifier(n_estimators=600, learning_rate=0.05, max_features=0.25)
-    print get_auc_on_known_data(clf,training_data,training_label,testing_data,testing_label)
+    sub = the_data.get_train_subject()
+    subset_l = random.sample(sub,4)
+    W_mat = 100*(np.random.rand(100,3))
+    the_feature = get_feature.DataFeatures(N_t = 400)
+    #clf = ensemble.GradientBoostingClassifier(n_estimators=600, learning_rate=0.05, max_features=0.25)
+    clf = LDA()
+    res_log = open('_'.join([str(int(it)) for it in subset_l]),'w+')
+    for W in W_mat:
+        print W
+        new_train = []
+        for ith,ICs in enumerate(the_data.train_signal_data):
+            ICs = ICs.tolist()
+            ICs = the_feature.remove_EOG(ICs,the_data.train_mixing[ith])
+            the_feature.reorder_IC_by_features(ICs,W)
+            ICs = the_feature.dim_reduction(ICs)
+            new_train.append(np.append(the_data.train_metadata[ith],np.ravel(ICs)))
+        new_train = np.array(new_train)
+        training_data,training_label,testing_data,testing_label = get_subset(new_train,the_data.train_labels,subset_l)
+        auc = get_auc_on_known_data(clf,training_data,training_label,testing_data,testing_label)
+        print auc
+        res_log.write(','.join([str(it) for it in W])+','+str(auc)+'\n')
+    res_log.close()
+
 

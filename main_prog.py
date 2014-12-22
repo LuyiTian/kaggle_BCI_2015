@@ -28,7 +28,7 @@ if __name__ == '__main__':
     import get_feature
     import classifiers
     from sklearn import ensemble
-    global_setting = {'bound': (0,300),'mode': 'ICA', 'low_pass':True,'source': 'npy',\
+    global_setting = {'bound': (-100,300),'mode': 'ICA', 'low_pass':True,'source': 'npy',\
                 'n_components': 5, 'random_state': 10}
     ##data object
     the_data = datamodel.EEGData()

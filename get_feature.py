@@ -34,19 +34,19 @@ class DataFeatures:
         a protoptypical 1/frequency curve 
         '''
         raise NotImplementedError,'Do not support lambda and FitError'
-    def _wrapper(self,x):
+    def _wrapper(self,x,W):
         self.specg(x)
-        return max(max(x),-min(x))#+self.get_mean_diff()
+        return W[0]*max(max(x),-min(x))+W[1]*self.get_mean_diff(time_window=(0,0.5))+W[2]*self.get_mean_diff(time_window=(0.5,1.3))
     def remove_EOG(self,ICs,mixingT,thr = 2.):
         '''
 
         '''
         tmp = mixingT /mixingT.std(0)
         tmp = tmp.T
-        return [a for a,b in zip(ICs,tmp[-1]) if -2.3<b<2.3]#remove EOG
-    def reorder_IC_by_features(self,ICs, W = None):
-        ICs.sort(key = lambda x:self._wrapper(x))
-    def dim_reduction(self,ICs,dim = 5,time_bound =(0,200)):
+        return [a for a,b in zip(ICs,tmp[-1]) if -2.0<b<2.0]#remove EOG
+    def reorder_IC_by_features(self,ICs, W):
+        ICs.sort(key = lambda x:self._wrapper(x,W))
+    def dim_reduction(self,ICs,dim = 5,time_bound =(100,300)):
         '''
 
         '''

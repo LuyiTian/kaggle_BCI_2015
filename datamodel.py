@@ -9,7 +9,7 @@ import os
 import matplotlib.pylab as plt
 from sklearn.decomposition import FastICA
 from scipy.signal import firwin, lfilter
-#from test_xDAWN import xDAWN
+from test_xDAWN import xDAWN
 
 #hard coded parameters
 LOCATION = {
@@ -88,16 +88,27 @@ class EEGData:
                 ICs = ica.fit_transform(sig.values)
                 if kwargs['_train']:
                     tmp = np.array([da>0 and 1. or -1 for da in ica.mixing_.T.mean(1)])
-                    self.train_signal_data.append(ICs.T)
+                    self.train_signal_data.append((tmp*ICs).T)
                     self.train_mixing.append(ica.mixing_.T)
                     self.train_metadata.append(np.array([subject,session,ith+1,p]))
                 else :
                     tmp = np.array([da>0 and 1. or -1 for da in ica.mixing_.T.mean(1)])##TODO: better way?
-                    self.test_signal_data.append(ICs.T)
+                    self.test_signal_data.append((tmp*ICs).T)
                     self.test_mixing.append(ica.mixing_.T)
                     self.test_metadata.append(np.array([subject,session,ith+1,p]))
+        elif kwargs['mode'] == 'full':
+            for ith, p in enumerate(event_onset):
+                m = df[int(p)+_lo-80:int(p)+_lo+20]
+                sig = df[int(p)+_lo:int(p)+_up]-m.mean(0)
+                if kwargs['_train']:
+                    self.train_signal_data.append(sig.values)
+                    self.train_metadata.append(np.array([subject,session,ith+1,p]))
+                else :
+                    self.test_signal_data.append(sig.values)
+                    self.test_metadata.append(np.array([subject,session,ith+1,p]))
         else:
-            raise NotImplementedError,"mode mast be 'ICA'."
+            raise NotImplementedError,"mode mast be 'ICA' or 'full'."
+
 
     def get_all(self,**kwargs):
         '''
@@ -154,8 +165,8 @@ class EEGData:
 
 if __name__ == '__main__':
     a = EEGData()
-    all_arg = {'bound': (0,260),'mode': 'ICA', 'low_pass':True,'source': 'file_to_npy',\
-                'n_components': 5, 'random_state': 10}
+    all_arg = {'bound': (20,120),'mode': 'full', 'low_pass':True,'source': 'file_to_npy',\
+                'n_components': 15, 'random_state': 10}
 
     a.get_all(**all_arg)
 
